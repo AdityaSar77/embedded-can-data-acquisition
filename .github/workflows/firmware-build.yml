@@ -9,14 +9,14 @@ on:
     
 jobs:
     build:
-        runs-on: windows-latest
+        runs-on: ubuntu-latest
         steps:
             - name: Check out repository
               uses: actions/checkout@v4
             
-            - name: Inspect project files
-              shell: pwsh
-              run: |
-                Get-ChildItem -Force
-                Test-Path .project
-                Test-Path .cproject
+            - name: Build STM32 firmware
+              uses: xanderhendriks/action-build-stm32cubeide@v10.0
+              with:
+                project-path: '.'
+                project-target: 'CAN_Data_Acquisition/Debug'
+                stm32cubeide-version: '16.0'
