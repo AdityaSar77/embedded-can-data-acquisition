@@ -42,6 +42,8 @@
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc;
 
+TIM_HandleTypeDef htim2;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -50,6 +52,7 @@ ADC_HandleTypeDef hadc;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -63,6 +66,12 @@ int value = 0;
 long map(long x, long in_min, long in_max, long out_min, long out_max) {
 	return (x - in_min) * (out_max - out_min + 1) / (in_max - in_min + 1) + out_min;
 }
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+	ADC_VAL = HAL_ADC_GetValue(hadc);
+	value = map(ADC_VAL, 0, 4034, 0, 100);
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -95,19 +104,22 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ADC_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_ADC_Start_IT(&hadc);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_ADC_Start(&hadc);
-	  HAL_ADC_PollForConversion(&hadc, 100);
-	  ADC_VAL = HAL_ADC_GetValue(&hadc);
-	  HAL_ADC_Stop(&hadc);
-	  value = map(ADC_VAL, 0, 4034, 0, 100);
-
+//	  HAL_ADC_Start(&hadc);
+//	  HAL_ADC_PollForConversion(&hadc, 100);
+//	  ADC_VAL = HAL_ADC_GetValue(&hadc);
+//	  HAL_ADC_Stop(&hadc);
+//	  value = map(ADC_VAL, 0, 4034, 0, 100);
+//
 	  HAL_Delay(500);
 	  count++;
     /* USER CODE END WHILE */
@@ -209,12 +221,58 @@ static void MX_ADC_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 7;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 999;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
@@ -222,13 +280,26 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(TIM2_DEBUG_GPIO_Port, TIM2_DEBUG_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : TIM2_DEBUG_Pin */
+  GPIO_InitStruct.Pin = TIM2_DEBUG_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(TIM2_DEBUG_GPIO_Port, &GPIO_InitStruct);
+
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	HAL_GPIO_TogglePin(TIM2_DEBUG_GPIO_Port, TIM2_DEBUG_Pin);
+	if (htim->Instance == TIM2) HAL_ADC_Start_IT(&hadc);
+}
 /* USER CODE END 4 */
 
 /**
