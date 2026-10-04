@@ -58,6 +58,11 @@ static void MX_ADC_Init(void);
 /* USER CODE BEGIN 0 */
 uint16_t ADC_VAL = 0;
 int count = 0;
+int value = 0;
+
+long map(long x, long in_min, long in_max, long out_min, long out_max) {
+	return (x - in_min) * (out_max - out_min + 1) / (in_max - in_min + 1) + out_min;
+}
 /* USER CODE END 0 */
 
 /**
@@ -101,6 +106,7 @@ int main(void)
 	  HAL_ADC_PollForConversion(&hadc, 100);
 	  ADC_VAL = HAL_ADC_GetValue(&hadc);
 	  HAL_ADC_Stop(&hadc);
+	  value = map(ADC_VAL, 0, 4034, 0, 100);
 
 	  HAL_Delay(500);
 	  count++;
