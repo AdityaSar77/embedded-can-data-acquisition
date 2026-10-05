@@ -62,9 +62,8 @@ static void MX_TIM2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint16_t ADC_VAL = 0;
-int full_count = 0;
-int half_count = 0;
-int value = 0;
+volatile uint32_t half_count = 0;
+volatile long value = 0;
 uint16_t buffer[BUFFER_LENGTH];
 
 long map(long x, long in_min, long in_max, long out_min, long out_max) {
@@ -75,9 +74,11 @@ void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc) {
 	if (hadc->Instance == ADC1) {
 		ADC_VAL = buffer[(BUFFER_LENGTH / 2) - 1];
 		value = map(ADC_VAL, 0, 4034, 0, 100);
-		full_count++;
+		half_count++;
 	}
 }
+
+volatile uint32_t full_count = 0;
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 	if (hadc->Instance == ADC1)
@@ -85,9 +86,15 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 		//HAL_GPIO_WritePin(TIM2_DEBUG_GPIO_Port, TIM2_DEBUG_Pin, GPIO_PIN_SET);
 		ADC_VAL = buffer[BUFFER_LENGTH - 1];
 		value = map(ADC_VAL, 0, 4034, 0, 100);
-		half_count++;
+		full_count++;
 		//HAL_GPIO_WritePin(TIM2_DEBUG_GPIO_Port, TIM2_DEBUG_Pin, GPIO_PIN_RESET);
 	}
+}
+
+volatile uint32_t error_count = 0;
+
+void HAL_ADC_ErrorCallback(ADC_HandleTypeDef* hadc) {
+	if (hadc->Instance == ADC1) error_count++;
 }
 
 /* USER CODE END 0 */
@@ -125,7 +132,6 @@ int main(void)
   MX_ADC_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim2);
   HAL_ADC_Start_DMA(&hadc, (uint32_t *)buffer, BUFFER_LENGTH);
   HAL_TIM_Base_Start(&htim2);
   /* USER CODE END 2 */
