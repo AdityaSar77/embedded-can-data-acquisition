@@ -17,6 +17,6 @@ jobs:
             - name: Build STM32 firmware
               uses: xanderhendriks/action-build-stm32cubeide@v10.0
               with:
-                project-path: '.'
+                project-path: 'STM32'
                 project-target: 'CAN_Data_Acquisition/Debug'
                 stm32cubeide-version: '16.0'
