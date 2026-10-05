@@ -68,8 +68,13 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-	ADC_VAL = HAL_ADC_GetValue(hadc);
-	value = map(ADC_VAL, 0, 4034, 0, 100);
+	if (hadc->Instance == ADC1)
+	{
+		HAL_GPIO_WritePin(TIM2_DEBUG_GPIO_Port, TIM2_DEBUG_Pin, GPIO_PIN_SET);
+		ADC_VAL = HAL_ADC_GetValue(hadc);
+		value = map(ADC_VAL, 0, 4034, 0, 100);
+		HAL_GPIO_WritePin(TIM2_DEBUG_GPIO_Port, TIM2_DEBUG_Pin, GPIO_PIN_RESET);
+	}
 }
 
 /* USER CODE END 0 */
