@@ -43,6 +43,8 @@
 ADC_HandleTypeDef hadc;
 DMA_HandleTypeDef hdma_adc;
 
+CAN_HandleTypeDef hcan;
+
 TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
@@ -55,6 +57,7 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_CAN_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -97,6 +100,17 @@ void HAL_ADC_ErrorCallback(ADC_HandleTypeDef* hadc) {
 	if (hadc->Instance == ADC1) error_count++;
 }
 
+CAN_TxHeaderTypeDef Tx_header = {0};
+uint8_t Tx_data[8] = {0xAB};
+uint32_t TxMailbox;
+HAL_StatusTypeDef Tx_status;
+
+uint32_t CanFifoFillLevel;
+
+CAN_RxHeaderTypeDef Rx_header;
+uint8_t Rx_data[8] = {0};
+HAL_StatusTypeDef Rx_status;
+
 /* USER CODE END 0 */
 
 /**
@@ -131,23 +145,39 @@ int main(void)
   MX_DMA_Init();
   MX_ADC_Init();
   MX_TIM2_Init();
+  MX_CAN_Init();
   /* USER CODE BEGIN 2 */
   HAL_ADC_Start_DMA(&hadc, (uint32_t *)buffer, BUFFER_LENGTH);
   HAL_TIM_Base_Start(&htim2);
+
+  CAN_FilterTypeDef filter_conf = {0};
+  filter_conf.FilterMode = CAN_FILTERMODE_IDMASK;
+  filter_conf.FilterScale = CAN_FILTERSCALE_32BIT;
+  filter_conf.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+  filter_conf.FilterActivation = CAN_FILTER_ENABLE;
+
+  HAL_StatusTypeDef filter_status;
+  filter_status = HAL_CAN_ConfigFilter(&hcan, &filter_conf);
+
+  if (filter_status != HAL_OK) Error_Handler();
+
+  HAL_CAN_Start(&hcan);
+  Tx_header.StdId = 2;
+  Tx_header.ExtId = 0;
+  Tx_header.IDE = CAN_ID_STD;
+  Tx_header.RTR = CAN_RTR_DATA;
+  Tx_header.DLC = 1;
+  Tx_header.TransmitGlobalTime = DISABLE;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  Tx_status = HAL_CAN_AddTxMessage(&hcan, &Tx_header, Tx_data, &TxMailbox);
   while (1)
   {
-//	  HAL_ADC_Start(&hadc);
-//	  HAL_ADC_PollForConversion(&hadc, 100);
-//	  ADC_VAL = HAL_ADC_GetValue(&hadc);
-//	  HAL_ADC_Stop(&hadc);
-//	  value = map(ADC_VAL, 0, 4034, 0, 100);
-//
-//	  HAL_Delay(500);
-//	  count++;
+	  CanFifoFillLevel = HAL_CAN_GetRxFifoFillLevel(&hcan, CAN_RX_FIFO0);
+	  if (CanFifoFillLevel != 0) Rx_status = HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &Rx_header, Rx_data);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -243,6 +273,43 @@ static void MX_ADC_Init(void)
   /* USER CODE BEGIN ADC_Init 2 */
 
   /* USER CODE END ADC_Init 2 */
+
+}
+
+/**
+  * @brief CAN Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CAN_Init(void)
+{
+
+  /* USER CODE BEGIN CAN_Init 0 */
+
+  /* USER CODE END CAN_Init 0 */
+
+  /* USER CODE BEGIN CAN_Init 1 */
+
+  /* USER CODE END CAN_Init 1 */
+  hcan.Instance = CAN;
+  hcan.Init.Prescaler = 1;
+  hcan.Init.Mode = CAN_MODE_LOOPBACK;
+  hcan.Init.SyncJumpWidth = CAN_SJW_1TQ;
+  hcan.Init.TimeSeg1 = CAN_BS1_13TQ;
+  hcan.Init.TimeSeg2 = CAN_BS2_2TQ;
+  hcan.Init.TimeTriggeredMode = DISABLE;
+  hcan.Init.AutoBusOff = DISABLE;
+  hcan.Init.AutoWakeUp = DISABLE;
+  hcan.Init.AutoRetransmission = DISABLE;
+  hcan.Init.ReceiveFifoLocked = DISABLE;
+  hcan.Init.TransmitFifoPriority = DISABLE;
+  if (HAL_CAN_Init(&hcan) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CAN_Init 2 */
+
+  /* USER CODE END CAN_Init 2 */
 
 }
 
