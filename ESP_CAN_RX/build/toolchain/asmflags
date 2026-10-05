@@ -1,0 +1,6 @@
+-Wno-frame-address
+-mlongcalls
+-fno-builtin-memcpy
+-fno-builtin-memset
+-fno-builtin-bzero
+"-specs=C:/Users/remys/STM32CubeIDE/CAN Data Acquisition.0/CAN_Data_Acquisition/ESP_CAN_RX/build/specs/picolibc.specs"
