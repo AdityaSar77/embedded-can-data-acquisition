@@ -1,5 +1,5 @@
 {
     "idf.currentSetup": "C:\\esp\\v6.1\\esp-idf",
-    "cmake.sourceDirectory": "C:/Users/remys/STM32CubeIDE/CAN Data Acquisition.0/CAN_Data_Acquisition/esp32/ESP_CAN_RX",
+    "cmake.sourceDirectory": "C:/Users/remys/STM32CubeIDE/CAN Data Acquisition.0/CAN_Data_Acquisition/ESP_CAN_RX",
     "idf.port": "COM5"
 }

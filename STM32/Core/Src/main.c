@@ -102,7 +102,7 @@ void HAL_ADC_ErrorCallback(ADC_HandleTypeDef* hadc) {
 
 CAN_TxHeaderTypeDef Tx_header = {0};
 uint8_t Tx_data[8] = {0xAB};
-uint32_t TxMailbox;
+uint32_t Tx_mailbox;
 HAL_StatusTypeDef Tx_status;
 
 uint32_t CanFifoFillLevel;
@@ -110,7 +110,7 @@ uint32_t CanFifoFillLevel;
 CAN_RxHeaderTypeDef Rx_header;
 uint8_t Rx_data[8] = {0};
 HAL_StatusTypeDef Rx_status;
-
+uint32_t can_error, tx_free;
 /* USER CODE END 0 */
 
 /**
@@ -172,11 +172,19 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  Tx_status = HAL_CAN_AddTxMessage(&hcan, &Tx_header, Tx_data, &TxMailbox);
+//  Tx_status = HAL_CAN_AddTxMessage(&hcan, &Tx_header, Tx_data, &TxMailbox);
   while (1)
   {
-	  CanFifoFillLevel = HAL_CAN_GetRxFifoFillLevel(&hcan, CAN_RX_FIFO0);
-	  if (CanFifoFillLevel != 0) Rx_status = HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &Rx_header, Rx_data);
+
+	  Tx_status = HAL_CAN_AddTxMessage(&hcan, &Tx_header, Tx_data, &Tx_mailbox);
+	  HAL_Delay(100);
+
+	  can_error = HAL_CAN_GetError(&hcan);
+	  tx_free = HAL_CAN_GetTxMailboxesFreeLevel(&hcan);
+	  HAL_Delay(400);
+
+	 // CanFifoFillLevel = HAL_CAN_GetRxFifoFillLevel(&hcan, CAN_RX_FIFO0);
+	  //if (CanFifoFillLevel != 0) Rx_status = HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &Rx_header, Rx_data);
 
     /* USER CODE END WHILE */
 
