@@ -1,0 +1,12 @@
+!SESSION 2026-10-06 23:16:08.957 -----------------------------------------------
+eclipse.buildId=Version 2.2.0
+java.version=21.0.10
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-10-06 23:16:32.709
+!MESSAGE Log4j2 initialized with config file C:\Users\remys\STM32CubeIDE\CAN Data Acquisition.0\CAN_Data_Acquisition\STM32\.metadata\.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-10-06 23:16:37.259
+!MESSAGE Started RMI Server, listening on port 41337

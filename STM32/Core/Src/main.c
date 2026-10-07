@@ -111,6 +111,8 @@ CAN_RxHeaderTypeDef Rx_header;
 uint8_t Rx_data[8] = {0};
 HAL_StatusTypeDef Rx_status;
 uint32_t can_error, tx_free;
+HAL_StatusTypeDef filter_status, start_status;
+
 /* USER CODE END 0 */
 
 /**
@@ -156,12 +158,18 @@ int main(void)
   filter_conf.FilterFIFOAssignment = CAN_FILTER_FIFO0;
   filter_conf.FilterActivation = CAN_FILTER_ENABLE;
 
-  HAL_StatusTypeDef filter_status;
+
   filter_status = HAL_CAN_ConfigFilter(&hcan, &filter_conf);
+  if (filter_status != HAL_OK) {
+      Error_Handler();
+  }
 
-  if (filter_status != HAL_OK) Error_Handler();
+  start_status = HAL_CAN_Start(&hcan);
+  if (start_status != HAL_OK) {
+      can_error = HAL_CAN_GetError(&hcan);  // Inspect here in the debugger
+      Error_Handler();
+  }
 
-  HAL_CAN_Start(&hcan);
   Tx_header.StdId = 2;
   Tx_header.ExtId = 0;
   Tx_header.IDE = CAN_ID_STD;
@@ -172,7 +180,6 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//  Tx_status = HAL_CAN_AddTxMessage(&hcan, &Tx_header, Tx_data, &TxMailbox);
   while (1)
   {
 
